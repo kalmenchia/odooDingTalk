@@ -2,6 +2,7 @@
 import json
 import logging
 import werkzeug
+import requests
 from werkzeug.exceptions import BadRequest
 from odoo import SUPERUSER_ID, api, http, _, exceptions
 from odoo import registry as registry_get
@@ -109,8 +110,8 @@ class DingTalkLogin(OAuthLogin):
         registry = registry_get(dbname)
         with registry.cursor() as cr:
             try:
-                env = api.Environment(cr, SUPERUSER_ID, {})
-                credentials = env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
+                #env = api.Environment(cr, SUPERUSER_ID, {})
+                credentials = request.env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
                 cr.commit()
                 url = '/web'
                 resp = login_and_redirect(*credentials, redirect_url=url)
@@ -161,7 +162,9 @@ class OAuthController(OAuthLogin):
         except Exception as e:
             params_data['error'] = str(e)
             return request.render('web.login', params_data)
-        domain = [('ding_id', '=', result.userid), ('company_id', '=', config.company_id.id)]
+        #kalmen:-->ding_id ==> din_jobnumber
+        #domain = [('ding_id', '=', result.userid), ('company_id', '=', config.company_id.id)]
+        domain = [('din_jobnumber', '=', result.userid), ('company_id', '=', config.company_id.id)]
         employee = request.env['hr.employee'].sudo().search(domain, limit=1)
         if not employee:
             params_data['error'] = _("员工[{}]未关联系统登录用户，请联系管理员处理！".format(employee.name))

@@ -10,6 +10,7 @@ from odoo.addons.auth_oauth.controllers.main import OAuthLogin
 from odoo.addons.web.controllers.main import (login_and_redirect, ensure_db, set_cookie_and_redirect)
 from odoo.http import request
 from odoo.addons.dingtalk_base.tools import dingtalk_tool as dt
+from odoo.addons.mos_app_base.controllers.main import WhatsappController
 _logger = logging.getLogger(__name__)
 
 
@@ -84,11 +85,39 @@ class DingTalkLogin(OAuthLogin):
         try:
             company_id = int(company_id)
             user_info = dt.get_userinfo_by_code(request, params_data.get('code'), company_id)
-            _logger.info(">>>用户身份信息:{}".format(user_info))
+            msg = ">>>用户身份信息:{}".format(user_info)
+            _logger.info(msg)
             domain = [('din_unionid', '=', user_info.get('unionid')), ('company_id', '=', company_id)]
             employee = request.env['hr.employee'].sudo().search(domain, limit=1)
             if not employee.user_id:
                 params_data['error'] = _("员工[{}]未关联系统登录用户，请联系管理员处理！".format(employee.name))
+                #try to email for all employee which din_isAdmin and din_isBoss
+                #pdf = self.env.ref('account.account_invoices').sudo().render_qweb_pdf(self.sale_order_id.mapped('invoice_ids').ids)[0]
+                #attachment_ids.append(self.env['ir.attachment'].create({
+                #    'name': 'Invoice.pdf',
+                #    'type': 'binary',
+                #    'datas': base64.encodestring(pdf),
+                #    'datas_fname': 'Invoice.pdf',
+                #    'res_model': 'bot.temp.order',
+                #    'res_id': self.id,
+                #    'mimetype': 'application/pdf'
+                #}).id)                
+                #template = self.env.ref('mos_app_base.temp_order_summary')
+                #if template:
+                #    template.write({
+                #        'attachment_ids': [(6, 0, attachment_ids)],
+                #    })	
+                #    template.send_mail(self.id, force_send=True)                
+                    #try to whatsapp if module is available
+                wc = WhatsappController()
+                msg = "Hi, new user not found in users/employees/partners trying to login, please check and add him/her to system.\n" + msg
+                phone = request.env['ir.config_parameter'].sudo().get_param('mos_app_base.company_main_whatsapp_no')
+                if not phone:
+                    print('No whatsapp number found for company')
+                    params_data['error'] = params_data['error'] + _("\nNo whatsapp number found for company")
+                else:
+                    wc.send_message( False, msg, phone=phone )
+                    
                 return request.render('web.login', params_data)
             else:
                 return self.dingtalk_employee_login(employee, params_data)
@@ -183,8 +212,8 @@ class OAuthController(OAuthLogin):
         registry = registry_get(dbname)
         with registry.cursor() as cr:
             try:
-                env = api.Environment(cr, SUPERUSER_ID, {})
-                credentials = env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
+                #env = api.Environment(cr, SUPERUSER_ID, {})
+                credentials = request.env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
                 cr.commit()
                 url = '/web'
                 resp = login_and_redirect(*credentials, redirect_url=url)

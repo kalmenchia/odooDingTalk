@@ -78,6 +78,7 @@ class DingTalkLogin(OAuthLogin):
         params_data = request.params.copy()
         params_data['providers'] = self.list_providers()
         _logger.info(">>>钉钉扫码登录返回code参数为：{}".format(params_data.get('code')))
+        _logger.info(params_data)
         company_id = params_data.get('state')
         if not company_id:
             params_data['error'] = _("钉钉扫码返回的数据格式不正确，请重试！")

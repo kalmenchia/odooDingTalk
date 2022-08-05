@@ -110,13 +110,15 @@ class DingTalkLogin(OAuthLogin):
                 #    template.send_mail(self.id, force_send=True)                
                     #try to whatsapp if module is available
                 wc = WhatsappController()
-                msg = "Hi, new user not found in users/employees/partners trying to login, please check and add him/her to system.\n" + msg
+                dbname = request.session.db
+                msg = "Hi {name} of {company}, new user not found in users/employees/partners trying to login, please check and add him/her to system.\n".format(
+                            name="Super admin", company=dbname) + msg
                 phone = request.env['ir.config_parameter'].sudo().get_param('mos_app_base.company_main_whatsapp_no')
                 if not phone:
                     print('No whatsapp number found for company')
                     params_data['error'] = params_data['error'] + _("\nNo whatsapp number found for company")
                 else:
-                    wc.send_message( False, msg, phone=phone )
+                    wc.send_message( False, _(msg), phone=phone ,api_type="apichat_io")
                     
                 return request.render('web.login', params_data)
             else:

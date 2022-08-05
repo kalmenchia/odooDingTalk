@@ -144,14 +144,23 @@ class DingTalkLogin(OAuthLogin):
         with registry.cursor() as cr:
             try:
                 #env = api.Environment(cr, SUPERUSER_ID, {})
-                credentials = request.env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
-                cr.commit()
-                url = '/web'
-                _logger.info(credentials)
-                resp = login_and_redirect(*credentials, redirect_url=url)
-                if werkzeug.urls.url_parse(resp.location).path == '/web':
-                    resp.location = '/'
-                return resp
+                if not employee:
+                    params_data['error'] = "登录时发生错误：{}".format('员工不存在')
+                    return request.render('web.login', params_data)                    
+                else:
+                    if not employee.ding_id:
+                        params_data['error'] = "登录时发生错误：{}".format('员工ding_id不存在')
+                        return request.render('web.login', params_data)
+                                                
+                    _logger.info(employee.ding_id)
+                    credentials = request.env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
+                    cr.commit()
+                    url = '/web'
+                    _logger.info(credentials)
+                    resp = login_and_redirect(*credentials, redirect_url=url)
+                    if werkzeug.urls.url_parse(resp.location).path == '/web':
+                        resp.location = '/'
+                    return resp
             except Exception as e:
                 params_data['error'] = "登录时发生错误：{}".format(str(e))
                 return request.render('web.login', params_data)

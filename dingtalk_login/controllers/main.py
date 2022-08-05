@@ -219,7 +219,7 @@ class OAuthController(OAuthLogin):
                 cr.commit()
                 url = '/web'
                 resp = login_and_redirect(*credentials, redirect_url=url)
-                if werkzeug.urls.url_parse(resp.location).path == '/web' and not request.env.user.has_group('base.group_user'):
+                if werkzeug.urls.url_parse(resp.location).path == '/web':
                     resp.location = '/'
                 return resp
             except Exception as e:

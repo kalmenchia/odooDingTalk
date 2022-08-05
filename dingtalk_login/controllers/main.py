@@ -147,6 +147,7 @@ class DingTalkLogin(OAuthLogin):
                 credentials = request.env['res.users'].sudo().auth_oauth('dingtalk_login', employee.ding_id)
                 cr.commit()
                 url = '/web'
+                _logger.info(credentials)
                 resp = login_and_redirect(*credentials, redirect_url=url)
                 if werkzeug.urls.url_parse(resp.location).path == '/web':
                     resp.location = '/'

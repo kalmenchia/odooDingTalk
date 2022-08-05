@@ -88,7 +88,8 @@ class DingTalkLogin(OAuthLogin):
             user_info = dt.get_userinfo_by_code(request, params_data.get('code'), company_id)
             msg = ">>>用户身份信息:{}".format(user_info)
             _logger.info(msg)
-            domain = [('din_unionid', '=', user_info.get('unionid')), ('company_id', '=', company_id)]
+            #domain = [('din_unionid', '=', user_info.get('unionid')), ('company_id', '=', company_id)]
+            domain = [('din_unionid', '=', user_info.get('unionid'))]
             employee = request.env['hr.employee'].sudo().search(domain, limit=1)
             if not employee.user_id:
                 params_data['error'] = _("员工[{}]未关联系统登录用户，请联系管理员处理！".format(employee.name))

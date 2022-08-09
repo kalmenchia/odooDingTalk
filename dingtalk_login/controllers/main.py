@@ -10,7 +10,7 @@ from odoo.addons.auth_oauth.controllers.main import OAuthLogin
 from odoo.addons.web.controllers.main import (login_and_redirect, ensure_db, set_cookie_and_redirect)
 from odoo.http import request
 from odoo.addons.dingtalk_base.tools import dingtalk_tool as dt
-from odoo.addons.mos_app_base.controllers.main import WhatsappController
+#todo: kalmen@temp disable from odoo.addons.mos_app_base.controllers.main import WhatsappController
 _logger = logging.getLogger(__name__)
 
 
@@ -111,16 +111,18 @@ class DingTalkLogin(OAuthLogin):
                 #    })	
                 #    template.send_mail(self.id, force_send=True)                
                     #try to whatsapp if module is available
-                wc = WhatsappController()
-                dbname = request.session.db
-                msg = "Hi {name} of {company}, new user not found in users/employees/partners trying to login, please check and add him/her to system.\n".format(
-                            name="Super admin", company=dbname) + msg
-                phone = request.env['ir.config_parameter'].sudo().get_param('mos_app_base.company_main_whatsapp_no')
-                if not phone:
-                    print('No whatsapp number found for company')
-                    params_data['error'] = params_data['error'] + _("\nNo whatsapp number found for company")
-                else:
-                    wc.send_message( False, _(msg), phone=phone ,api_type="apichat_io")
+                
+                #todo: kalmen@temp disable
+                #wc = WhatsappController()
+                #dbname = request.session.db
+                #msg = "Hi {name} of {company}, new user not found in users/employees/partners trying to login, please check and add him/her to #system.\n".format(
+                #            name="Super admin", company=dbname) + msg
+                #phone = request.env['ir.config_parameter'].sudo().get_param('mos_app_base.company_main_whatsapp_no')
+                #if not phone:
+                #    print('No whatsapp number found for company')
+                #    params_data['error'] = params_data['error'] + _("\nNo whatsapp number found for company")
+                #else:
+                #    wc.send_message( False, _(msg), phone=phone ,api_type="apichat_io")
                     
                 return request.render('web.login', params_data)
             else:
